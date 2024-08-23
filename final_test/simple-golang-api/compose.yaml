@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Сервис приложения (App)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+
+  # Сервис PostgreSQL
+  db:
+    image: postgres:13
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+
+  # Сервис Nginx
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    networks:
+      - web-network
+    depends_on:
+      - app
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
+volumes:
+  dbdata:
+
+networks:
+  app-network:
+    driver: bridge
+  web-network:
+    driver: bridge
+
